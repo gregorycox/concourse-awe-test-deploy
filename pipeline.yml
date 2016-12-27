@@ -35,5 +35,5 @@ jobs:
         params:
           template: "repo/cfn_template.json"
           parameters: "repo/parameters.json"
-          capabilities: CAPABILITY_IAM
+          capabilities: "CAPABILITY_IAM"
 
