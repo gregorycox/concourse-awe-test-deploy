@@ -6,6 +6,7 @@ resource_types:
       repository: "dpb587/aws-cloudformation-stack-resource"
       tag: "master"
 
+
 resources:
   - name: "repo"
     type: "git"
@@ -22,6 +23,7 @@ resources:
       secret_key: {{aws_secret_key}}
       region: {{aws_region}}
 
+
 jobs:
   - name: "test-deploy"
     serial: true
@@ -33,3 +35,4 @@ jobs:
         params:
           template: "repo/cfn_template.json"
           parameters: "repo/parameters.json"
+
