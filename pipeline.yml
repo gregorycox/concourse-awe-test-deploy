@@ -6,85 +6,34 @@ resource_types:
       repository: "dpb587/aws-cloudformation-stack-resource"
       tag: "stable"
 
+
 resources:
-- name: git-nodejs-simple-test-develop
-  type: git
-  source:
-    uri: git@github.com:gregorycox/nodejs_simple_test.git
-    branch: develop
-    private_key: {{private-repo-key}}
-    username: {{repo-username}}
+  - name: "repo"
+    type: "git"
+    source:
+      uri: {{repo_uri}}
+      branch: {{repo_branch}}
+      private_key: {{private-repo-key}}
+      username: {{repo-username}}
+  - name: "bastion-stack"
+    type: "aws-cloudformation-stack"
+    source:
+      name: bastion-stack
+      access_key: {{aws_access_key}}
+      secret_key: {{aws_secret_key}}
+      region: {{aws_region}}
 
-- name: nodejs_simple_test_image_build
-  type: docker-image
-  source:
-    email: {{docker-hub-email}}
-    username: {{docker-hub-username}}
-    password: {{docker-hub-password}}
-    repository: gregorycox/nodejs_simple_test
-    tag: build
-
-- name: git-nodejs-simple-test-master
-  type: git
-  source:
-    uri: git@github.com:gregorycox/nodejs_simple_test.git
-    branch: master
-    private_key: {{private-repo-key}}
-    username: {{repo-username}}
-
-- name: nodejs_simple_test_image_promote
-  type: docker-image
-  source:
-    email: {{docker-hub-email}}
-    username: {{docker-hub-username}}
-    password: {{docker-hub-password}}
-    repository: gregorycox/nodejs_simple_test
-    tag: latest
 
 jobs:
-- name: build-docker-image
-  public: true
-  serial: true
-  plan:
-  - get: git-nodejs-simple-test-develop
-    trigger: true
-  - put: nodejs_simple_test_image_build
-    params:
-      build: git-nodejs-simple-test-develop
+  - name: "test-deploy"
+    serial: true
+    plan:
+      - aggregate:
+          - get: "repo"
+            trigger: true
+      - put: "bastion-stack"
+        params:
+          template: "repo/cfn_template.json"
+          parameters: "repo/parameters.json"
 
-- name: test-docker-image
-  plan:
-  - get: nodejs_simple_test_image_build
-    passed: [build-docker-image]
-    trigger: true
-  - get: git-nodejs-simple-test-develop
-    passed: [build-docker-image]
-  - task: test-docker-image
-    config:
-      platform: linux
-      image_resource:
-        type: docker-image
-        source: {repository: gregorycox/nodejs_simple_test, tag: build}
-      inputs:
-      - name: git-nodejs-simple-test-develop
-        path: .
-      run:
-        path: /usr/src/app/node_modules/mocha/bin/mocha
-
-- name: promote-nodejs_simple_test-repo
-  plan:
-  - get: git-nodejs-simple-test-develop
-    passed: [test-docker-image]
-    trigger: true
-  - put: git-nodejs-simple-test-master
-    params: {repository: git-nodejs-simple-test-develop}
-
-- name: build-docker-image-master
-  plan:
-  - get: git-nodejs-simple-test-master
-    passed: [promote-nodejs_simple_test-repo]
-    trigger: true
-  - put: nodejs_simple_test_image_promote
-    params:
-      build: git-nodejs-simple-test-master
 
