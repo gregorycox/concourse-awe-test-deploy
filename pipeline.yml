@@ -18,7 +18,7 @@ resources:
   - name: "bastion-stack"
     type: "aws-cloudformation-stack"
     source:
-      name: bastion-stack
+      name: "repo"
       access_key: {{aws_access_key}}
       secret_key: {{aws_secret_key}}
       region: {{aws_region}}
