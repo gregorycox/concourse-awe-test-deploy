@@ -14,10 +14,10 @@ resources:
       branch: {{repo_branch}}
       private_key: {{private-repo-key}}
       username: {{repo-username}}
-  - name: "bastion_stack"
+  - name: "bastion-stack"
     type: "aws-cloudformation-stack"
     source:
-      name: "repo"
+      name: "bastion-stack"
       access_key: {{aws_access_key}}
       secret_key: {{aws_secret_key}}
       region: {{aws_region}}
@@ -29,7 +29,7 @@ jobs:
       - aggregate:
           - get: "repo"
             trigger: true
-      - put: "bastion_stack"
+      - put: "bastion-stack"
         params:
           template: "repo/cfn_template.json"
           parameters: "repo/parameters.json"
